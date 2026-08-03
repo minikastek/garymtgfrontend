@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+function isBasicLand(card) {
+  if (/Basic Land/i.test(card?.type || '')) return true;
+  const name = String(card?.name || '').toLowerCase().split(' // ')[0];
+  return ['plains', 'island', 'swamp', 'mountain', 'forest', 'wastes'].includes(name);
+}
 
 export default function CardTile({
   card,
@@ -8,15 +14,23 @@ export default function CardTile({
   showAdd = false,
   showQtyControls = false,
   onRemove,
+  maxCopies,
 }) {
+  const unlimited = isBasicLand(card);
+  const max = maxCopies ?? (unlimited ? 99 : 4);
   const [qty, setQty] = useState(quantity);
+
+  useEffect(() => {
+    setQty(quantity);
+  }, [quantity]);
+
   const price =
     card.prices?.cardkingdom?.retail ??
     card.prices?.scryfallUsd ??
     null;
 
   function changeQty(next) {
-    const n = Math.max(1, Math.min(4, next));
+    const n = Math.max(1, Math.min(max, next));
     setQty(n);
     onQuantityChange?.(n);
   }
@@ -94,7 +108,7 @@ export default function CardTile({
               <button
                 type="button"
                 className="cursor-pointer px-2 py-1 text-muted hover:text-white"
-                onClick={() => onQuantityChange?.(Math.min(4, quantity + 1))}
+                onClick={() => onQuantityChange?.(Math.min(max, quantity + 1))}
               >
                 +
               </button>

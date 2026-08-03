@@ -70,24 +70,33 @@ export async function getDeck(id) {
   return request(`/decks/${id}`);
 }
 
+export async function updateDeck(id, payload) {
+  return request(`/decks/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function deleteDeck(id) {
   return request(`/decks/${id}`, { method: 'DELETE' });
 }
 
-export async function addCardToDeck(deckId, card, quantity) {
+export async function addCardToDeck(deckId, card, quantity, board = 'main') {
   return request(`/decks/${deckId}/cards`, {
     method: 'POST',
-    body: JSON.stringify({ card, quantity }),
+    body: JSON.stringify({ card, quantity, board }),
   });
 }
 
-export async function updateCardQuantity(deckId, cardId, quantity) {
+export async function updateCardQuantity(deckId, cardId, quantity, board = 'main') {
   return request(`/decks/${deckId}/cards/${cardId}`, {
     method: 'PATCH',
-    body: JSON.stringify({ quantity }),
+    body: JSON.stringify({ quantity, board }),
   });
 }
 
-export async function removeCardFromDeck(deckId, cardId) {
-  return request(`/decks/${deckId}/cards/${cardId}`, { method: 'DELETE' });
+export async function removeCardFromDeck(deckId, cardId, board = 'main') {
+  return request(`/decks/${deckId}/cards/${cardId}?board=${encodeURIComponent(board)}`, {
+    method: 'DELETE',
+  });
 }

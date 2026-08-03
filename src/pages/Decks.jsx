@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createDeck, listDecks, deleteDeck } from '../api';
 import Button from '../components/Button';
 import PageShell from '../components/PageShell';
 
 export default function Decks() {
+  const navigate = useNavigate();
   const [decks, setDecks] = useState([]);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -28,9 +29,9 @@ export default function Decks() {
     setBusy(true);
     setError('');
     try {
-      await createDeck(name.trim());
+      const { deck } = await createDeck(name.trim());
       setName('');
-      await refresh();
+      navigate(`/decks/${deck.id}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -51,7 +52,9 @@ export default function Decks() {
   return (
     <PageShell>
       <h1 className="mb-2 text-3xl font-bold">Mis decks</h1>
-      <p className="mb-6 text-muted">Creá un deck y añadí hasta 4 copias por carta (Standard).</p>
+      <p className="mb-6 text-muted">
+        Main ≥ 60 · Sideboard ≤ 15 · máx. 4 copias (tierras básicas ilimitadas). Podés guardar incompleto.
+      </p>
 
       <form
         className="mb-8 flex flex-col gap-2 rounded-[14px] border border-accent/20 bg-surface p-4 sm:flex-row sm:items-end"
@@ -68,7 +71,7 @@ export default function Decks() {
           />
         </label>
         <Button type="submit" disabled={busy}>
-          {busy ? 'Creando…' : 'Crear deck'}
+          {busy ? 'Creando…' : 'Crear y guardar'}
         </Button>
       </form>
 
@@ -81,7 +84,7 @@ export default function Decks() {
 
       <ul className="grid gap-3 sm:grid-cols-2">
         {decks.map((deck) => {
-          const total = deck.cards.reduce((s, c) => s + c.quantity, 0);
+          const L = deck.legality;
           return (
             <li
               key={deck.id}
@@ -91,14 +94,25 @@ export default function Decks() {
                 <Link to={`/decks/${deck.id}`} className="text-lg font-semibold text-white hover:text-accent">
                   {deck.name}
                 </Link>
-                <p className="m-0 text-sm text-muted">{total} cartas</p>
+                <p className="m-0 text-sm text-muted">
+                  Main {L?.mainCount ?? 0}/{L?.minMain ?? 60} · Side {L?.sideboardCount ?? 0}/{L?.maxSideboard ?? 15}
+                </p>
+                {L?.legal ? (
+                  <span className="mt-1 inline-block text-xs font-semibold text-emerald-400">Legal</span>
+                ) : (
+                  <span className="mt-1 inline-block text-xs font-semibold text-amber-300">
+                    {L?.mainNeeded > 0
+                      ? `Faltan ${L.mainNeeded} en el main`
+                      : L?.messages?.[0] || 'No legal'}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button as={Link} to={`/decks/${deck.id}`} variant="ghost">
-                  Abrir
+                  Editar
                 </Button>
                 <Button type="button" variant="danger" onClick={() => onDelete(deck.id)}>
-                  Borrar
+                  Eliminar
                 </Button>
               </div>
             </li>
