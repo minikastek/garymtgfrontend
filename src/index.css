@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0f1419;
+  --color-surface: #1a2332;
+  --color-surface-2: #243044;
+  --color-muted: #9aabbf;
+  --color-accent: #c9a227;
+  --color-accent-hover: #e0b82e;
+  --color-danger: #e05a5a;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  @apply m-0 min-h-screen bg-bg font-sans text-white antialiased;
+  background-image:
+    radial-gradient(ellipse at top right, #1e3a2f 0%, transparent 45%),
+    radial-gradient(ellipse at bottom left, #2a1f0f 0%, transparent 40%);
+}
