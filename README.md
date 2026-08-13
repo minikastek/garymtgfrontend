@@ -67,14 +67,20 @@ Open the local URL printed by Vite, normally `http://localhost:5173`.
 
 ## API configuration
 
-The frontend currently reads a development API URL directly from `src/api.js`:
+Copy `.env.example` to `.env.local` when the backend uses a different origin:
 
-```text
-http://localhost:3001/api
+```powershell
+Copy-Item .env.example .env.local
 ```
 
-Environment-based `VITE_API_URL` support is planned for Phase 1. Until that is
-implemented, changing the backend origin requires updating `src/api.js`.
+The default configuration is:
+
+```dotenv
+VITE_API_URL=http://localhost:3001/api
+```
+
+Trailing slashes are normalized by the API client. Restart the Vite development
+server after changing environment values.
 
 Do not place secrets in frontend environment variables. Values prefixed with
 `VITE_` are bundled into client code and are visible to users.
@@ -87,9 +93,10 @@ Do not place secrets in frontend environment variables. Values prefixed with
 | `npm run build` | Build the production bundle |
 | `npm run lint` | Run Oxlint |
 | `npm run preview` | Preview the production build locally |
+| `npm test` | Run the Node-native API contract tests |
 
-No frontend test runner is configured yet. Automated component and interaction
-testing is tracked in Phase 6 of the roadmap.
+API boundary tests are configured with Node's built-in test runner. Automated
+React component and interaction testing remains tracked in Phase 6.
 
 ## Repository map
 

@@ -23,9 +23,9 @@
   identifiers, and developer documentation are English. Preserve accents and
   punctuation in UTF-8 and test long card names, set metadata, and double-faced
   card names.
-- **UI test commands:** None configured. Current automated checks are
-  `npm run lint` and `npm run build`; interaction tests are planned in roadmap
-  Phase 6.
+- **UI test commands:** `npm test` runs Node-native API contract tests;
+  `npm run lint` and `npm run build` validate source and production bundling.
+  Rendered component interaction tests are planned in roadmap Phase 6.
 - **Accessibility test commands/tools:** Manual only: keyboard navigation,
   visible focus, browser zoom/reflow, contrast inspection, and representative
   screen-reader checks. Automation is planned but will not replace manual checks.

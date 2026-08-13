@@ -1,4 +1,4 @@
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth';
 import PageShell from '../components/PageShell';
 
 export default function Profile() {

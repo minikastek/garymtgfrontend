@@ -20,7 +20,7 @@ Available today:
 
 Important gaps:
 
-- The API origin is hard-coded.
+- The API origin is configurable through `VITE_API_URL` with a local fallback.
 - Deck detail does not consistently use dedicated card mutation endpoints.
 - Binder, wishlist, and trade workflows are missing.
 - Binder and wishlist APIs lack dedicated quantity-update and removal endpoints;
@@ -119,7 +119,7 @@ Validation:
 
 ## Phase 1: API boundary and application shell
 
-**Status:** Not started
+**Status:** Complete (2026-08-13)
 
 **Outcome:** Features share request, routing, session, and feedback behavior.
 
@@ -142,6 +142,20 @@ Work:
 6. Ensure navigation supports keyboard use, visible current route, narrow
    layouts, and authenticated/anonymous states.
 
+Delivered implementation:
+
+- `src/api.js` now owns environment configuration, normalized `ApiError`
+  failures, token-aware session expiry, and all binder/wishlist/trade requests.
+- `test/api.test.js` protects authorization, error, expiry, URL, and payload
+  contracts with Node's built-in test runner.
+- `src/AuthContext.jsx` and `src/auth.js` separate provider and hook concerns and
+  consume one session-expiry event without circular imports.
+- `src/App.jsx`, `src/pages/Login.jsx`, and `src/pages/NotFound.jsx` provide safe
+  return navigation, expiry feedback, development-only test routing, and 404
+  recovery.
+- `src/components/Navbar.jsx` and `src/components/Button.jsx` add active,
+  responsive, focus-visible, Escape, and touch-target behavior.
+
 Acceptance criteria:
 
 - All requests follow `VITE_API_URL` without source edits.
@@ -154,6 +168,17 @@ Checks:
 - `npm run lint` exits successfully.
 - `npm run build` creates a production bundle.
 - Manual anonymous, authenticated, expired-session, mobile, and desktop checks.
+
+Validation evidence:
+
+- `npm test`: 6 API contract tests passed.
+- `npm run lint`: passed with no warnings.
+- `npm run build`: passed with `VITE_API_URL` configured; the development-only
+  `/test` route was absent from the production bundle.
+- `npm audit --audit-level=high`: no known high-severity vulnerabilities.
+- Focused browser checks covered public and protected routes, 404 recovery,
+  active navigation, account-menu Escape/focus behavior, touch targets, and a
+  320 px layout without horizontal overflow.
 
 ## Phase 2: Stabilize decks
 

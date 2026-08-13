@@ -16,7 +16,7 @@ export default function Button({
 }) {
   return (
     <Comp
-      className={`inline-flex items-center justify-center rounded-[10px] px-4 py-2.5 font-semibold transition-colors ${variants[variant] ?? variants.primary} ${className}`}
+      className={`inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] px-4 py-2.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed ${variants[variant] ?? variants.primary} ${className}`}
       {...props}
     >
       {children}

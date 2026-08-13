@@ -57,6 +57,28 @@ It stores durable context, not a transcript or changelog.
 
 ## Effective patterns
 
+### Unauthorized responses use a browser event boundary
+
+- **Date:** 2026-08-13
+- **Context:** Phase 1 API and session foundation.
+- **Insight:** `src/api.js` removes an existing token and emits
+  `garymtg:session-expired` after authenticated `401` responses. `AuthProvider`
+  consumes that event, preventing API/auth circular imports and avoiding false
+  expiry messages for unauthenticated login failures.
+- **Confidence:** high
+- **Confirmations:** 1
+
+### API contract tests can remain dependency-free
+
+- **Date:** 2026-08-13
+- **Context:** Added test-first coverage before the full React test stack.
+- **Insight:** Node's built-in test runner, native `Response`, and small browser
+  stubs are sufficient for URL, header, payload, normalized-error, and session
+  event contracts in `src/api.js`. Rendered interaction tests still need the
+  Phase 6 tooling.
+- **Confidence:** medium
+- **Confirmations:** 1
+
 ### Preserve the existing visual direction while formalizing it
 
 - **Date:** 2026-08-13
@@ -149,5 +171,16 @@ It stores durable context, not a transcript or changelog.
 - **Insight:** Several existing strings and symbols are stored or rendered as
   mojibake. Any file touched in upcoming UI phases must preserve UTF-8, and the
   release requires a targeted Spanish-copy encoding pass.
+- **Confidence:** high
+- **Confirmations:** 1
+
+### Transitive dependency advisory during Phase 1
+
+- **Date:** 2026-08-13
+- **Context:** Phase 1 frontend completion gate.
+- **Insight:** The installed dependency graph initially included a vulnerable
+  `nanoid` release. `npm audit fix` resolved it without a breaking upgrade. Keep
+  `npm audit --audit-level=high` in the PR completion gate so lockfile drift is
+  caught before shipping.
 - **Confidence:** high
 - **Confirmations:** 1

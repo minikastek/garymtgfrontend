@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteDeck, getDeck, updateDeck } from '../api';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth';
 import Button from '../components/Button';
 import CardSearch from '../components/CardSearch';
 import CardTile from '../components/CardTile';
