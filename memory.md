@@ -141,6 +141,22 @@ It stores durable context, not a transcript or changelog.
 
 ## Decisions and open questions
 
+### Deck mutations use confirmed server snapshots
+
+- **Date:** 2026-08-13
+- **Context:** Phase 2 deck stabilization.
+- **Insight:** Render the deck returned by each granular mutation instead of editing card arrays optimistically. Failed requests then cannot appear saved, and backend legality remains authoritative.
+- **Confidence:** high
+- **Confirmations:** 1
+
+### Board moves require one atomic full-resource patch
+
+- **Date:** 2026-08-13
+- **Context:** The backend has granular add, quantity, and removal endpoints but no move endpoint.
+- **Insight:** Remove-then-add can lose data, while add-then-remove can violate copy limits. Use one `PATCH /decks/:id` containing both boards until an atomic move route exists.
+- **Confidence:** high
+- **Confirmations:** 1
+
 ### Roadmap sequence
 
 - **Date:** 2026-08-13
@@ -163,6 +179,14 @@ It stores durable context, not a transcript or changelog.
 - **Confirmations:** 1
 
 ## Failure analysis
+
+### Development watchers can restart child API processes
+
+- **Date:** 2026-08-13
+- **Context:** Phase 2 failed-mutation browser validation.
+- **Insight:** Killing only the process listening on the backend port is insufficient when `node --watch` owns it; the watcher can restart the child and invalidate a network-failure simulation. Stop the watcher session and confirm the port is free before testing disconnected behavior.
+- **Confidence:** high
+- **Confirmations:** 1
 
 ### Source text contains encoding corruption
 

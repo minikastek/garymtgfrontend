@@ -182,7 +182,7 @@ Validation evidence:
 
 ## Phase 2: Stabilize decks
 
-**Status:** Not started
+**Status:** Complete (2026-08-13)
 
 **Outcome:** Deck operations persist safely and legality feedback is actionable.
 
@@ -219,6 +219,24 @@ Checks:
 - Exercise empty, incomplete, legal, copy violation, basic land, sideboard limit,
   slow request, and failed request cases.
 - Run lint and build.
+
+Delivered implementation:
+
+- Pure, tested deck rules mirror backend counts, copy limits, basic-land exceptions, and board moves.
+- Card mutations wait for server confirmation and preserve the last confirmed deck after failures.
+- Rename, add, quantity, move, removal, and delete actions expose distinct pending and result feedback.
+- Deck list, detail, search, and legality views provide explicit loading, empty, failure, and recovery states.
+- Card controls have descriptive labels, 44 px targets, duplicate-submission protection, and focus recovery after removal.
+
+Validation evidence:
+
+- `npm test`: 11 tests passed, including copy limits, basic-land exceptions, correction guidance, and board moves.
+- `npm run lint`: passed with no warnings.
+- `npm run build`: production build passed.
+- `npm audit --audit-level=high`: no known vulnerabilities.
+- Browser workflow: create, rename, quantity update, reload persistence, board move, removal, focus recovery, and failed-mutation rollback passed.
+- The 320 px deck detail layout rendered without horizontal overflow.
+- External card search displayed its error state when the sandbox could not reach the card provider; mutation checks continued with a normalized card seeded through the local API.
 
 ## Phase 3: Implement binders
 

@@ -1,53 +1,33 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { deleteDeck, getDeck, updateDeck } from '../api';
+import { addCardToDeck, deleteDeck, getDeck, removeCardFromDeck, updateCardQuantity, updateDeck } from '../api';
 import { useAuth } from '../auth';
 import Button from '../components/Button';
 import CardSearch from '../components/CardSearch';
 import CardTile from '../components/CardTile';
 import DeckLegalityTag from '../components/DeckLegalityTag';
 import PageShell from '../components/PageShell';
+import { evaluateDeckLegality, moveCardBetweenBoards } from '../deckRules';
 
-function isBasicLand(card) {
-  if (/Basic Land/i.test(card?.type || '')) return true;
-  const name = String(card?.name || '').toLowerCase().split(' // ')[0];
-  return ['plains', 'island', 'swamp', 'mountain', 'forest', 'wastes'].includes(name);
+function DeckDetailSkeleton() {
+  return <PageShell><div className="animate-pulse" aria-label="Cargando deck"><div className="mb-4 h-5 w-24 rounded bg-surface-2" /><div className="mb-3 h-12 max-w-xl rounded bg-surface" /><div className="mb-8 h-24 rounded-[14px] bg-surface" /><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((item) => <div key={item} className="aspect-[5/7] rounded-[12px] bg-surface" />)}</div></div></PageShell>;
 }
 
-function totalByName(main, sideboard, cardName) {
-  const key = String(cardName || '').toLowerCase().split(' // ')[0];
-  let total = 0;
-  for (const list of [main, sideboard]) {
-    for (const c of list) {
-      if (String(c.name || '').toLowerCase().split(' // ')[0] === key) {
-        total += Number(c.quantity) || 0;
-      }
-    }
+function BoardSection({ title, cards, count, hint, board, pending, onQty, onRemove, onMove }) {
+  const headingRef = useRef(null);
+  async function removeAndRecoverFocus(cardId) {
+    const removed = await onRemove(cardId, board);
+    if (removed) headingRef.current?.focus();
   }
-  return total;
-}
-
-function BoardSection({ title, cards, count, hint, board, onQty, onRemove }) {
   return (
-    <section className="mb-8">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="m-0 text-xl font-semibold">{title}</h2>
-        <span className="text-sm text-muted">{count} cartas{hint ? ` · ${hint}` : ''}</span>
+    <section className="mb-8" aria-labelledby={`${board}-heading`}>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id={`${board}-heading`} ref={headingRef} tabIndex="-1" className="m-0 rounded text-xl font-semibold focus-visible:outline-2 focus-visible:outline-accent">{title}</h2>
+        <span className="text-sm text-muted">{count} cartas · {hint}</span>
       </div>
-      {!cards.length ? (
-        <p className="text-muted">Vacío.</p>
-      ) : (
+      {!cards.length ? <p className="rounded-[12px] border border-dashed border-white/10 p-4 text-sm text-muted">No hay cartas en {title.toLowerCase()}.</p> : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {cards.map((card) => (
-            <CardTile
-              key={`${board}-${card.id}`}
-              card={card}
-              quantity={card.quantity}
-              showQtyControls
-              onQuantityChange={(q) => onQty(card.id, q, board)}
-              onRemove={() => onRemove(card.id, board)}
-            />
-          ))}
+          {cards.map((card) => <CardTile key={`${board}-${card.id}`} card={card} quantity={card.quantity} showQtyControls pending={pending} board={board} onQuantityChange={(quantity) => onQty(card.id, quantity, board)} onRemove={() => removeAndRecoverFocus(card.id)} onMove={() => onMove(card.id, board)} />)}
         </div>
       )}
     </section>
@@ -58,268 +38,109 @@ export default function DeckDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [deck, setDeck] = useState(null);
   const [name, setName] = useState('');
-  const [main, setMain] = useState([]);
-  const [sideboard, setSideboard] = useState([]);
-  const [legality, setLegality] = useState(null);
   const [board, setBoard] = useState('main');
   const [error, setError] = useState('');
-  const [savedMsg, setSavedMsg] = useState('');
+  const [savedMessage, setSavedMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
+  const [pending, setPending] = useState('');
+  const mutationLockRef = useRef(false);
 
-  useEffect(() => {
-    getDeck(id)
-      .then(({ deck }) => {
-        setName(deck.name);
-        setMain(deck.main || []);
-        setSideboard(deck.sideboard || []);
-        setLegality(deck.legality);
-        setDirty(false);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  const mainCount = useMemo(
-    () => main.reduce((s, c) => s + (Number(c.quantity) || 0), 0),
-    [main],
-  );
-  const sideCount = useMemo(
-    () => sideboard.reduce((s, c) => s + (Number(c.quantity) || 0), 0),
-    [sideboard],
-  );
-
-  function touch() {
-    setDirty(true);
-    setSavedMsg('');
-  }
-
-  function handleAdd(card, quantity, targetBoard) {
-    setError('');
-    const max = isBasicLand(card) ? 999 : 4;
-    const currentTotal = totalByName(main, sideboard, card.name);
-    if (!isBasicLand(card) && currentTotal + quantity > max) {
-      setError(`Máximo ${max} copias de "${card.name}" entre main y sideboard`);
-      return;
-    }
-
-    const setter = targetBoard === 'sideboard' ? setSideboard : setMain;
-    setter((list) => {
-      const existing = list.find((c) => c.id === card.id);
-      if (existing) {
-        return list.map((c) =>
-          c.id === card.id ? { ...c, quantity: c.quantity + quantity } : c,
-        );
-      }
-      return [
-        ...list,
-        {
-          id: card.id,
-          name: card.name,
-          set: card.set,
-          collectorNumber: card.collectorNumber,
-          rarity: card.rarity,
-          type: card.type,
-          image: card.image,
-          imageLarge: card.imageLarge,
-          prices: card.prices,
-          quantity,
-        },
-      ];
-    });
-    touch();
-  }
-
-  function handleQty(cardId, quantity, targetBoard) {
-    setError('');
-    const setter = targetBoard === 'sideboard' ? setSideboard : setMain;
-    const list = targetBoard === 'sideboard' ? sideboard : main;
-    const entry = list.find((c) => c.id === cardId);
-    if (!entry) return;
-
-    if (quantity <= 0) {
-      setter((prev) => prev.filter((c) => c.id !== cardId));
-      touch();
-      return;
-    }
-
-    const max = isBasicLand(entry) ? 999 : 4;
-    const otherBoardQty = (targetBoard === 'sideboard' ? main : sideboard)
-      .filter(
-        (c) =>
-          String(c.name).toLowerCase().split(' // ')[0] ===
-          String(entry.name).toLowerCase().split(' // ')[0],
-      )
-      .reduce((s, c) => s + c.quantity, 0);
-
-    if (!isBasicLand(entry) && otherBoardQty + quantity > max) {
-      setError(`Máximo ${max} copias entre main y sideboard`);
-      return;
-    }
-
-    setter((prev) => prev.map((c) => (c.id === cardId ? { ...c, quantity } : c)));
-    touch();
-  }
-
-  function handleRemove(cardId, targetBoard) {
-    const setter = targetBoard === 'sideboard' ? setSideboard : setMain;
-    setter((prev) => prev.filter((c) => c.id !== cardId));
-    touch();
-  }
-
-  async function handleSave() {
-    if (!name.trim()) {
-      setError('El nombre del deck es obligatorio');
-      return;
-    }
-    setSaving(true);
+  const loadDeck = useCallback(async () => {
+    setLoading(true);
     setError('');
     try {
-      const { deck } = await updateDeck(id, {
-        name: name.trim(),
-        main,
-        sideboard,
-      });
-      setName(deck.name);
-      setMain(deck.main || []);
-      setSideboard(deck.sideboard || []);
-      setLegality(deck.legality);
-      setDirty(false);
-      setSavedMsg(`Decklist guardada en la cuenta de ${user?.username || 'tu usuario'}`);
+      const response = await getDeck(id);
+      setDeck(response.deck);
+      setName(response.deck.name);
     } catch (err) {
       setError(err.message);
     } finally {
-      setSaving(false);
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { loadDeck(); }, [loadDeck]);
+
+  const main = useMemo(() => deck?.main || [], [deck?.main]);
+  const sideboard = useMemo(() => deck?.sideboard || [], [deck?.sideboard]);
+  const legality = useMemo(() => evaluateDeckLegality(main, sideboard, deck?.legality), [deck?.legality, main, sideboard]);
+  const nameDirty = Boolean(deck) && name.trim() !== deck.name;
+
+  async function mutate(label, operation, successMessage) {
+    if (mutationLockRef.current) return false;
+    mutationLockRef.current = true;
+    setPending(label);
+    setError('');
+    setSavedMessage('');
+    try {
+      const { deck: confirmedDeck } = await operation();
+      setDeck(confirmedDeck);
+      setSavedMessage(successMessage);
+      return true;
+    } catch (err) {
+      setError(`${err.message} No se aplicaron cambios.`);
+      return false;
+    } finally {
+      mutationLockRef.current = false;
+      setPending('');
     }
   }
 
+  async function handleRename(event) {
+    event.preventDefault();
+    const nextName = name.trim();
+    if (!nextName) return setError('El nombre del deck es obligatorio.');
+    if (!nameDirty) return;
+    const saved = await mutate('rename', () => updateDeck(id, { name: nextName }), 'Nombre guardado.');
+    if (saved) setName(nextName);
+  }
+
+  const handleAdd = (card, quantity, target) => mutate(`add-${card.id}`, () => addCardToDeck(id, card, quantity, target), `${card.name} se agregó a ${target === 'sideboard' ? 'sideboard' : 'main'}.`);
+  const handleQuantity = (cardId, quantity, target) => mutate(`quantity-${target}-${cardId}`, () => updateCardQuantity(id, cardId, quantity, target), 'Cantidad actualizada.');
+  const handleRemove = (cardId, target) => mutate(`remove-${target}-${cardId}`, () => removeCardFromDeck(id, cardId, target), 'Carta eliminada del deck.');
+  const handleMove = (cardId, source) => {
+    const next = moveCardBetweenBoards(main, sideboard, cardId, source);
+    return mutate(`move-${source}-${cardId}`, () => updateDeck(id, next), `Carta movida a ${source === 'main' ? 'sideboard' : 'main'}.`);
+  };
+
   async function handleDelete() {
-    if (!confirm('¿Eliminar este deck de tu cuenta?')) return;
+    if (mutationLockRef.current || !confirm(`¿Eliminar "${deck.name}"? Esta acción no se puede deshacer.`)) return;
+    mutationLockRef.current = true;
+    setPending('delete');
+    setError('');
     try {
       await deleteDeck(id);
       navigate('/decks');
     } catch (err) {
       setError(err.message);
+      mutationLockRef.current = false;
+      setPending('');
     }
   }
 
-  if (loading) {
-    return (
-      <PageShell>
-        <p>Cargando deck…</p>
-      </PageShell>
-    );
-  }
-
-  if (error && !name && !main.length) {
-    return (
-      <PageShell>
-        <p className="text-[#ffb4b4]">{error || 'Deck no encontrado'}</p>
-        <Link to="/decks" className="text-accent">Volver</Link>
-      </PageShell>
-    );
-  }
+  if (loading) return <DeckDetailSkeleton />;
+  if (!deck) return <PageShell><section className="max-w-xl rounded-[14px] border border-danger/35 bg-danger/10 p-6"><h1 className="mb-2 text-2xl font-bold">No pudimos abrir este deck</h1><p className="mb-5 text-[#ffb4b4]" role="alert">{error || 'Deck no encontrado.'}</p><div className="flex flex-wrap gap-2"><Button type="button" onClick={loadDeck}>Reintentar</Button><Button as={Link} to="/decks" variant="ghost">Volver a mis decks</Button></div></section></PageShell>;
 
   return (
     <PageShell>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Link to="/decks" className="text-sm text-muted hover:text-accent">
-          ← Mis decks
-        </Link>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="danger" onClick={handleDelete}>
-            Eliminar
-          </Button>
-          <Button type="button" onClick={handleSave} disabled={saving || !dirty}>
-            {saving ? 'Guardando…' : dirty ? 'Guardar decklist' : 'Guardado'}
-          </Button>
-        </div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <Link to="/decks" className="rounded text-sm text-muted hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">← Mis decks</Link>
+        <Button type="button" variant="danger" onClick={handleDelete} disabled={Boolean(pending)}>{pending === 'delete' ? 'Eliminando…' : 'Eliminar deck'}</Button>
       </div>
 
-      <label className="mb-3 block text-sm text-muted">
-        Nombre del deck
-        <input
-          className="mt-1.5 w-full max-w-xl rounded-lg border border-white/10 bg-surface px-3 py-2.5 text-xl font-bold text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/45"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            touch();
-          }}
-        />
-      </label>
+      <form className="mb-4 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-end" onSubmit={handleRename}>
+        <label className="flex flex-1 flex-col gap-1.5 text-sm font-medium text-muted">Nombre del deck<input className="min-h-11 w-full rounded-lg border border-white/10 bg-surface px-3 py-2.5 text-xl font-bold text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/45" value={name} onChange={(event) => { setName(event.target.value); setSavedMessage(''); }} required /></label>
+        <Button type="submit" disabled={Boolean(pending) || !nameDirty || !name.trim()}>{pending === 'rename' ? 'Guardando…' : nameDirty ? 'Guardar nombre' : 'Nombre guardado'}</Button>
+      </form>
 
-      {user && (
-        <p className="mb-3 text-sm text-muted">
-          Asociado a <span className="text-accent">{user.username}</span>
-          {dirty ? ' · cambios sin guardar' : ''}
-        </p>
-      )}
-
-      <DeckLegalityTag
-        legality={
-          legality
-            ? {
-                ...legality,
-                mainCount,
-                sideboardCount: sideCount,
-                mainNeeded: Math.max(0, (legality.minMain || 60) - mainCount),
-                sideboardOver: Math.max(0, sideCount - (legality.maxSideboard || 15)),
-                legal:
-                  mainCount >= (legality.minMain || 60) &&
-                  sideCount <= (legality.maxSideboard || 15) &&
-                  !(legality.copyViolations?.length),
-              }
-            : {
-                legal: mainCount >= 60 && sideCount <= 15,
-                mainCount,
-                sideboardCount: sideCount,
-                mainNeeded: Math.max(0, 60 - mainCount),
-                sideboardOver: Math.max(0, sideCount - 15),
-                copyViolations: [],
-                messages: [],
-                minMain: 60,
-                maxSideboard: 15,
-              }
-        }
-      />
-
-      {savedMsg && <p className="mb-4 text-sm text-emerald-400">{savedMsg}</p>}
-      {error && <p className="mb-4 text-sm text-[#ffb4b4]">{error}</p>}
-
-      <div className="mb-8">
-        <CardSearch onAdd={handleAdd} board={board} onBoardChange={setBoard} />
-      </div>
-
-      <BoardSection
-        title="Main"
-        board="main"
-        cards={main}
-        count={mainCount}
-        hint="mín. 60"
-        onQty={handleQty}
-        onRemove={handleRemove}
-      />
-
-      <BoardSection
-        title="Sideboard"
-        board="sideboard"
-        cards={sideboard}
-        count={sideCount}
-        hint="máx. 15"
-        onQty={handleQty}
-        onRemove={handleRemove}
-      />
-
-      <div className="sticky bottom-4 z-10 flex justify-end gap-2">
-        <Button type="button" variant="danger" onClick={handleDelete}>
-          Eliminar
-        </Button>
-        <Button type="button" onClick={handleSave} disabled={saving || !dirty}>
-          {saving ? 'Guardando…' : 'Guardar decklist'}
-        </Button>
-      </div>
+      <p className="mb-4 text-sm text-muted">Asociado a <span className="text-accent">{user?.username || 'tu cuenta'}</span>. Los cambios de cartas se guardan cuando el servidor los confirma.</p>
+      <DeckLegalityTag legality={legality} />
+      <div className="mb-5 min-h-6" aria-live="polite">{savedMessage && <p className="text-sm text-emerald-400" role="status">{savedMessage}</p>}{error && <p className="text-sm text-[#ffb4b4]" role="alert">{error}</p>}</div>
+      <div className="mb-8"><CardSearch onAdd={handleAdd} board={board} onBoardChange={setBoard} pending={Boolean(pending)} /></div>
+      <BoardSection title="Main" board="main" cards={main} count={legality.mainCount} hint="mínimo 60" pending={Boolean(pending)} onQty={handleQuantity} onRemove={handleRemove} onMove={handleMove} />
+      <BoardSection title="Sideboard" board="sideboard" cards={sideboard} count={legality.sideboardCount} hint="máximo 15" pending={Boolean(pending)} onQty={handleQuantity} onRemove={handleRemove} onMove={handleMove} />
     </PageShell>
   );
 }
