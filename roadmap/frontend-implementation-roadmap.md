@@ -240,7 +240,7 @@ Validation evidence:
 
 ## Phase 3: Implement binders
 
-**Status:** Not started
+**Status:** Complete (2026-08-13)
 
 **Outcome:** Users can organize owned printings and quantities.
 
@@ -275,6 +275,24 @@ Checks:
 - Exercise zero/multiple binders, empty binder, duplicate printing, long
   description, failed patch, and failed delete.
 - Keyboard-check forms and quantity controls; run lint and build.
+
+Delivered implementation:
+
+- Binder list, create, detail, metadata edit, and delete workflows now use the existing protected API.
+- Card addition uses the dedicated endpoint; quantity and removal use confirmed full-resource patches.
+- Loading, empty, error, pending, success, and recovery states match the collection interaction model.
+- Binder metadata is normalized and descriptions are limited to 280 characters in both UI and backend.
+- Quantity controls preserve a minimum of one and removal restores focus to binder contents.
+
+Validation evidence:
+
+- `npm test`: 16 tests passed, including immutable quantity, minimum quantity, removal, count, and metadata rules.
+- `npm run lint`: passed with no warnings.
+- `npm run build`: production build passed.
+- `npm audit --audit-level=high`: no known vulnerabilities.
+- Browser workflow: create, metadata reload persistence, quantity reload persistence, failed-patch rollback, removal focus recovery, and delete navigation passed.
+- Binder search and card controls use binder-specific copy, and the 320 px detail layout has no horizontal overflow.
+- External card search remains dependent on the backend card providers; persistence checks used a normalized printing seeded through the local API.
 
 ## Phase 4: Implement wishlists
 

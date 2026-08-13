@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import Decks from './pages/Decks';
 import DeckDetail from './pages/DeckDetail';
 import Binders from './pages/Binders';
+import BinderDetail from './pages/BinderDetail';
 import NotFound from './pages/NotFound';
 import Test from './pages/Test';
 
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="/decks" element={<PrivateRoute><Decks /></PrivateRoute>} />
           <Route path="/decks/:id" element={<PrivateRoute><DeckDetail /></PrivateRoute>} />
           <Route path="/binders" element={<PrivateRoute><Binders /></PrivateRoute>} />
+          <Route path="/binders/:id" element={<PrivateRoute><BinderDetail /></PrivateRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

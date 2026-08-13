@@ -3,7 +3,7 @@ import { searchCards } from '../api';
 import Button from './Button';
 import CardTile from './CardTile';
 
-export default function CardSearch({ onAdd, board = 'main', onBoardChange, pending = false }) {
+export default function CardSearch({ onAdd, board = 'main', onBoardChange, pending = false, collectionLabel = 'deck' }) {
   const [query, setQuery] = useState('');
   const [searchedQuery, setSearchedQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -33,9 +33,13 @@ export default function CardSearch({ onAdd, board = 'main', onBoardChange, pendi
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="card-search-title" className="m-0 text-lg font-semibold">Buscar cartas</h2>
-          <p className="mt-1 text-xs text-muted">Elegí el destino antes de agregar una carta.</p>
+          <p className="mt-1 text-xs text-muted">
+            {collectionLabel === 'deck'
+              ? 'Elegí el destino antes de agregar una carta.'
+              : 'Buscá una impresión y elegí cuántas copias querés registrar.'}
+          </p>
         </div>
-        <fieldset className="flex rounded-lg border border-white/10 p-0.5" disabled={pending}>
+        {onBoardChange && <fieldset className="flex rounded-lg border border-white/10 p-0.5" disabled={pending}>
           <legend className="sr-only">Sección de destino</legend>
           {['main', 'sideboard'].map((option) => (
             <button
@@ -48,7 +52,7 @@ export default function CardSearch({ onAdd, board = 'main', onBoardChange, pendi
               {option === 'main' ? 'Main' : 'Sideboard'}
             </button>
           ))}
-        </fieldset>
+        </fieldset>}
       </div>
 
       <form className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={onSubmit}>
@@ -65,7 +69,11 @@ export default function CardSearch({ onAdd, board = 'main', onBoardChange, pendi
         <Button type="submit" disabled={busy || !query.trim()}>{busy ? 'Buscando…' : 'Buscar'}</Button>
       </form>
 
-      <p className="mb-4 text-xs text-muted">Las tierras básicas no tienen límite; el resto admite hasta 4 copias entre main y sideboard.</p>
+      <p className="mb-4 text-xs text-muted">
+        {collectionLabel === 'deck'
+          ? 'Las tierras básicas no tienen límite; el resto admite hasta 4 copias entre main y sideboard.'
+          : 'Elegí la cantidad de esta impresión que querés registrar. Si ya existe, se sumará a la cantidad actual.'}
+      </p>
       {error && <p className="mb-3 text-sm text-[#ffb4b4]" role="alert">{error}</p>}
       {!busy && !error && searchedQuery && !results.length && (
         <p className="mb-3 rounded-lg border border-white/10 p-3 text-sm text-muted" role="status">
@@ -76,7 +84,7 @@ export default function CardSearch({ onAdd, board = 'main', onBoardChange, pendi
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {results.map((card) => (
-          <CardTile key={card.id} card={card} showAdd pending={pending} onAdd={(selected, quantity) => onAdd?.(selected, quantity, board)} />
+          <CardTile key={card.id} card={card} showAdd pending={pending} maxCopies={collectionLabel === 'deck' ? undefined : 999} onAdd={(selected, quantity) => onAdd?.(selected, quantity, board)} />
         ))}
       </div>
     </section>

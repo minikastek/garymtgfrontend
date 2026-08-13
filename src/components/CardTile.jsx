@@ -3,7 +3,7 @@ import { isBasicLand } from '../deckRules';
 
 const controlClass = 'min-h-11 min-w-11 cursor-pointer rounded text-muted hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45';
 
-export default function CardTile({ card, quantity = 1, onQuantityChange, onAdd, showAdd = false, showQtyControls = false, onRemove, onMove, board = 'main', pending = false, maxCopies }) {
+export default function CardTile({ card, quantity = 1, onQuantityChange, onAdd, showAdd = false, showQtyControls = false, onRemove, onMove, board = 'main', pending = false, maxCopies, removeLabel = 'Quitar del deck' }) {
   const max = maxCopies ?? (isBasicLand(card) ? 99 : 4);
   const [qty, setQty] = useState(quantity);
   const [acting, setActing] = useState(false);
@@ -53,8 +53,8 @@ export default function CardTile({ card, quantity = 1, onQuantityChange, onAdd, 
               <output className="min-w-8 text-center text-sm" aria-label={`Cantidad: ${quantity}`}>{quantity}</output>
               <button type="button" className={controlClass} disabled={disabled || quantity >= max} aria-label={`Aumentar cantidad de ${card.name}`} onClick={() => runAction(() => onQuantityChange?.(quantity + 1))}>+</button>
             </div>
-            <button type="button" className="min-h-11 cursor-pointer rounded-lg border border-white/10 px-2 py-2 text-xs text-muted hover:border-accent/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45" disabled={disabled} onClick={() => runAction(onMove)}>Mover a {board === 'main' ? 'sideboard' : 'main'}</button>
-            <button type="button" className="min-h-11 cursor-pointer rounded-lg px-2 py-2 text-xs text-danger hover:bg-danger/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger disabled:cursor-not-allowed disabled:opacity-45" disabled={disabled} onClick={() => runAction(onRemove)}>{acting ? 'Guardando…' : 'Quitar del deck'}</button>
+            {onMove && <button type="button" className="min-h-11 cursor-pointer rounded-lg border border-white/10 px-2 py-2 text-xs text-muted hover:border-accent/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45" disabled={disabled} onClick={() => runAction(onMove)}>Mover a {board === 'main' ? 'sideboard' : 'main'}</button>}
+            <button type="button" className="min-h-11 cursor-pointer rounded-lg px-2 py-2 text-xs text-danger hover:bg-danger/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger disabled:cursor-not-allowed disabled:opacity-45" disabled={disabled} onClick={() => runAction(onRemove)}>{acting ? 'Guardando…' : removeLabel}</button>
           </div>
         )}
       </div>

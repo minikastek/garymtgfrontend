@@ -141,6 +141,22 @@ It stores durable context, not a transcript or changelog.
 
 ## Decisions and open questions
 
+### Delay collection abstraction until wishlists
+
+- **Date:** 2026-08-13
+- **Context:** Phase 3 binder implementation after deck stabilization.
+- **Insight:** Reuse `CardSearch`, `CardTile`, request feedback, and confirmed-response conventions now, but wait for the wishlist implementation before extracting a generic collection state layer. Two non-deck examples are needed to avoid encoding binder-only assumptions.
+- **Confidence:** high
+- **Confirmations:** 1
+
+### Binder quantity changes use immutable full patches
+
+- **Date:** 2026-08-13
+- **Context:** The backend exposes binder add-card but not quantity or removal endpoints.
+- **Insight:** Build a new `cards` array from the confirmed binder, send it through `PATCH /binders/:id`, and replace state only with the response. Never mutate the confirmed array in place.
+- **Confidence:** high
+- **Confirmations:** 1
+
 ### Deck mutations use confirmed server snapshots
 
 - **Date:** 2026-08-13
