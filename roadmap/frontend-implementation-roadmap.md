@@ -296,7 +296,7 @@ Validation evidence:
 
 ## Phase 4: Implement wishlists
 
-**Status:** Not started
+**Status:** Complete
 
 **Outcome:** Users can maintain wanted cards for trade matching.
 

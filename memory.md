@@ -224,3 +224,9 @@ It stores durable context, not a transcript or changelog.
   caught before shipping.
 - **Confidence:** high
 - **Confirmations:** 1
+# Phase 4 wishlist management
+
+- Wishlist persistence mirrors binders: dedicated card additions and complete card-array patches for quantity changes or removal.
+- Client state adopts only confirmed wishlist responses; failed mutations retain the last server-confirmed view.
+- Shared UI primitives are proven useful, but binder and wishlist page state remains separate until trade comparison establishes a durable abstraction.
+- Wishlist descriptions follow the backend 280-character cap and quantities are clamped to at least one.
