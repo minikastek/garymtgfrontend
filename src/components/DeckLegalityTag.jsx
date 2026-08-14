@@ -3,42 +3,27 @@ export default function DeckLegalityTag({ legality }) {
 
   if (legality.legal) {
     return (
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-sm font-semibold text-emerald-300">
-        Legal
-        <span className="font-normal text-emerald-300/80">
-          Main {legality.mainCount} · Side {legality.sideboardCount}/{legality.maxSideboard}
-        </span>
-      </div>
+      <section className="mb-5 rounded-[12px] border border-emerald-500/40 bg-emerald-500/10 p-4" aria-label="Estado de legalidad">
+        <p className="font-semibold text-emerald-300">Deck legal</p>
+        <p className="mt-1 text-sm text-emerald-300/80">
+          Main {legality.mainCount} · Sideboard {legality.sideboardCount}/{legality.maxSideboard}
+        </p>
+      </section>
     );
   }
 
-  const bits = [];
-  if (legality.mainNeeded > 0) {
-    bits.push(`Faltan ${legality.mainNeeded} en el main`);
-  }
-  if (legality.sideboardOver > 0) {
-    bits.push(`Sideboard +${legality.sideboardOver} de más`);
-  }
-  if (legality.copyViolations?.length) {
-    bits.push(`${legality.copyViolations.length} exceso de copias`);
-  }
-
   return (
-    <div className="mb-4 rounded-[12px] border border-amber-500/35 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-100">
-      <div className="font-semibold text-amber-200">No legal · {bits.join(' · ')}</div>
-      <div className="mt-1 text-amber-100/75">
-        Main {legality.mainCount}/{legality.minMain}
-        {legality.mainNeeded > 0 ? ` (faltan ${legality.mainNeeded})` : ''}
-        {' · '}
-        Side {legality.sideboardCount}/{legality.maxSideboard}
+    <section className="mb-5 rounded-[12px] border border-amber-500/35 bg-amber-500/10 p-4 text-sm text-amber-100" aria-label="Estado de legalidad">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-semibold text-amber-200">Deck incompleto o no legal</p>
+        <p className="text-xs text-amber-100/75">
+          Main {legality.mainCount}/{legality.minMain} · Sideboard {legality.sideboardCount}/{legality.maxSideboard}
+        </p>
       </div>
-      {legality.messages?.length > 0 && (
-        <ul className="mt-2 m-0 list-disc pl-5 text-xs text-amber-100/70">
-          {legality.messages.map((m) => (
-            <li key={m}>{m}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+      <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-100/80">
+        {legality.messages.map((message) => <li key={message}>{message}</li>)}
+      </ul>
+      <p className="mt-3 text-xs text-amber-100/65">Podés seguir guardando el deck mientras lo completás.</p>
+    </section>
   );
 }

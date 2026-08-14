@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../api';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth';
 import Button from '../components/Button';
 import PageShell from '../components/PageShell';
 

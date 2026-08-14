@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { login } from '../api';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth';
 import Button from '../components/Button';
 import PageShell from '../components/PageShell';
 
 export default function Login() {
   const { setSession } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,7 +21,7 @@ export default function Login() {
     try {
       const data = await login({ email, password });
       setSession(data);
-      navigate('/');
+      navigate(location.state?.from || '/', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -35,8 +36,13 @@ export default function Login() {
         onSubmit={onSubmit}
       >
         <h1 className="m-0 text-2xl font-bold">Iniciar sesión</h1>
+        {location.state?.reason === 'expired' && (
+          <p role="status" className="m-0 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2.5 text-sm text-white">
+            Tu sesión venció. Iniciá sesión nuevamente para continuar.
+          </p>
+        )}
         {error && (
-          <p className="m-0 rounded-lg bg-danger/15 px-3 py-2.5 text-sm text-[#ffb4b4]">{error}</p>
+          <p role="alert" className="m-0 rounded-lg bg-danger/15 px-3 py-2.5 text-sm text-[#ffb4b4]">{error}</p>
         )}
         <label className="flex flex-col gap-1.5 text-sm text-muted">
           Email

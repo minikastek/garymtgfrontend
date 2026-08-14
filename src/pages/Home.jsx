@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../auth';
 import Button from '../components/Button';
 import PageShell from '../components/PageShell';
 
