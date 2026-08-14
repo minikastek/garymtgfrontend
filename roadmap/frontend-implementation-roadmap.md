@@ -326,11 +326,13 @@ Checks:
 - Exercise empty, populated, duplicate, failure, long/double-faced names, delete,
   and narrow viewport cases; run lint and build.
 
-## Phase 5: Trade discovery and comparison
+## Phase 5: Trade discovery and reciprocal comparison
 
 **Status:** Not started
 
-**Outcome:** Users can find another user and understand useful matches.
+**Outcome:** Users can discover consenting traders by approximate location and understand what both players can give and receive.
+
+The scalable trading MVP, proposal workflow, pricing dependency, and growth triggers are specified in `roadmap/trading-mvp-scalable-architecture.md`.
 
 Primary files:
 
@@ -340,12 +342,13 @@ Primary files:
 
 Flow:
 
-1. Search another user by username.
-2. Select the user and load public binder summaries.
-3. Select a target binder and personal wishlist.
-4. Submit `targetUserId`, `binderId`, and `wishlistId`.
-5. Show match count, available/wanted quantities, and relevant printings.
-6. Allow any selection to change without restarting the flow.
+1. Opt into trading and publish country, region, or city visibility.
+2. Discover another user by approximate location or username.
+3. Select each player’s trade-enabled binders and wishlists.
+4. Compute both wishlist-to-binder intersections.
+5. Show available/wanted quantities, relevant printings, and substitutions.
+6. Preserve selection context while filters or collections change.
+7. Feed reciprocal matches into bounded automatic trade suggestions after the pricing foundation is available.
 
 Acceptance criteria:
 

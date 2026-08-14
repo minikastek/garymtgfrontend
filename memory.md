@@ -230,3 +230,10 @@ It stores durable context, not a transcript or changelog.
 - Client state adopts only confirmed wishlist responses; failed mutations retain the last server-confirmed view.
 - Shared UI primitives are proven useful, but binder and wishlist page state remains separate until trade comparison establishes a durable abstraction.
 - Wishlist descriptions follow the backend 280-character cap and quantities are clamped to at least one.
+# Trading architecture direction
+
+- Trading grows as a modular monolith: Express orchestration, PostgreSQL authority, pure matching logic, and repository/provider interfaces.
+- Durable proposals require PostgreSQL transactions and optimistic concurrency; JSON files are not an acceptable proposal source of truth.
+- Location discovery starts with opt-in country/region/city identifiers and never exposes exact addresses or coordinates.
+- Automatic trades are editable suggestions only. Both players explicitly control proposal lifecycle transitions.
+- Pricing and matching are extraction candidates, but workers, queues, PostGIS, services, and optimization solvers require measured triggers.
