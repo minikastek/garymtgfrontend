@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { compareTrade, listTradeBinders, listWishlists, searchTradeUsers } from '../api';
 import Button from '../components/Button';
 import PageShell from '../components/PageShell';
-import { buildTradeComparisonPayload } from '../tradeRules';
+import { buildTradeComparisonPayload, getTradeSearchEmptyMessage } from '../tradeRules';
 
 function UserAvatar({ user }) {
   if (user.avatar) {
@@ -26,6 +26,7 @@ export default function Trade() {
   const [wishlistId, setWishlistId] = useState('');
   const [result, setResult] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [loadingBinders, setLoadingBinders] = useState(false);
   const [loadingWishlists, setLoadingWishlists] = useState(true);
   const [comparing, setComparing] = useState(false);
@@ -55,6 +56,7 @@ export default function Trade() {
     if (!normalizedQuery || searching) return;
 
     setSearching(true);
+    setHasSearched(false);
     setSearchError('');
     setUsers([]);
     setSelectedUser(null);
@@ -64,6 +66,7 @@ export default function Trade() {
     try {
       const data = await searchTradeUsers(normalizedQuery);
       setUsers(data.users || []);
+      setHasSearched(true);
     } catch (error) {
       setSearchError(error.message || 'No pudimos buscar jugadores.');
     } finally {
@@ -115,6 +118,11 @@ export default function Trade() {
     binderId,
     wishlistId,
   }));
+  const searchEmptyMessage = getTradeSearchEmptyMessage({
+    hasSearched,
+    query,
+    resultCount: users.length,
+  });
 
   return (
     <PageShell>
@@ -141,8 +149,8 @@ export default function Trade() {
           <Button type="submit" disabled={searching || !query.trim()}>{searching ? 'Buscando...' : 'Buscar'}</Button>
         </form>
         {searchError && <p role="alert" className="mt-4 rounded-lg border border-danger/40 bg-danger/10 p-3 text-danger">{searchError}</p>}
-        {!searching && !searchError && query.trim() && users.length === 0 && (
-          <p className="mt-4 text-muted">Buscá para ver jugadores. Tu propia cuenta no aparece en los resultados.</p>
+        {!searching && !searchError && searchEmptyMessage && (
+          <p className="mt-4 text-muted">{searchEmptyMessage}</p>
         )}
         {users.length > 0 && (
           <ul className="mt-5 grid gap-3 sm:grid-cols-2" aria-label="Jugadores encontrados">
