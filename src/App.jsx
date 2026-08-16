@@ -13,6 +13,7 @@ import Binders from './pages/Binders';
 import BinderDetail from './pages/BinderDetail';
 import Wishlists from './pages/Wishlists';
 import WishlistDetail from './pages/WishlistDetail';
+import Trade from './pages/Trade';
 import NotFound from './pages/NotFound';
 import Test from './pages/Test';
 
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/binders/:id" element={<PrivateRoute><BinderDetail /></PrivateRoute>} />
         <Route path="/wishlists" element={<PrivateRoute><Wishlists /></PrivateRoute>} />
         <Route path="/wishlists/:id" element={<PrivateRoute><WishlistDetail /></PrivateRoute>} />
+        <Route path="/trade" element={<PrivateRoute><Trade /></PrivateRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

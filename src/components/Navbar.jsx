@@ -77,6 +77,7 @@ export default function Navbar() {
                   <NavLink to="/decks" className={menuLinkClass}>Mis decks</NavLink>
                   <NavLink to="/binders" className={menuLinkClass}>Mis binders</NavLink>
                   <NavLink to="/wishlists" className={menuLinkClass}>Mis wishlists</NavLink>
+                  <NavLink to="/trade" className={menuLinkClass}>Buscar intercambios</NavLink>
                   <button
                     type="button"
                     className="mt-1 min-h-11 cursor-pointer rounded-lg border-0 border-t border-white/5 bg-transparent px-3 py-2.5 text-left font-inherit text-danger outline-none hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"

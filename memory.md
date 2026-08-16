@@ -230,3 +230,10 @@ It stores durable context, not a transcript or changelog.
 - Client state adopts only confirmed wishlist responses; failed mutations retain the last server-confirmed view.
 - Shared UI primitives are proven useful, but binder and wishlist page state remains separate until trade comparison establishes a durable abstraction.
 - Wishlist descriptions follow the backend 280-character cap and quantities are clamped to at least one.
+
+## 2026-08-15 - Phase 5 trade comparison
+
+- The frontend trade journey lives at /trade and uses searchTradeUsers, listTradeBinders, listWishlists, and compareTrade through src/api.js.
+- Trade comparison is intentionally name-based across printings; the UI must explain that editions do not need to match.
+- Selection changes clear stale comparison results while preserving the rest of the active flow.
+- Reciprocal wants and auto-trade proposals remain a separate backend-dependent slice; do not infer the other player's private wishlist from public binder data.

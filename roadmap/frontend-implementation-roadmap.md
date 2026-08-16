@@ -436,3 +436,10 @@ Release gate:
 - Keyboard operation, focus, semantics, labels, and reflow are checked.
 - Relevant lint, build, tests, and manual checks are run and recorded.
 - Roadmap status and `memory.md` are updated with durable outcomes.
+
+## Phase 5 progress: trade comparison flow
+
+- Implemented the authenticated /trade journey: partial username search, player selection, public binder loading, personal wishlist selection, and name-based comparison results.
+- Covered loading, empty, error, disabled, and populated states for each step, including explicit copy that matching ignores card edition.
+- Added a focused payload contract helper and Node test coverage.
+- Next bounded slice: extend comparison into reciprocal wants and an auto-trade proposal once the backend reciprocal-matching contract is available.
