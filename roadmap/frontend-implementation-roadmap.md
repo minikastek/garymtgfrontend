@@ -443,3 +443,9 @@ Release gate:
 - Covered loading, empty, error, disabled, and populated states for each step, including explicit copy that matching ignores card edition.
 - Added a focused payload contract helper and Node test coverage.
 - Next bounded slice: extend comparison into reciprocal wants and an auto-trade proposal once the backend reciprocal-matching contract is available.
+
+## Phase 6 progress: rendered interaction testing
+
+- Added a jsdom interaction-test foundation with Vitest and React Testing Library.
+- Added axe-core checks as automated accessibility evidence, while keeping manual keyboard, responsive, and screen-reader review as release requirements.
+- Kept the existing Node-native domain-rule suite and made the default test command run both layers.

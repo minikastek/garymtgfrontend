@@ -237,3 +237,10 @@ It stores durable context, not a transcript or changelog.
 - Trade comparison is intentionally name-based across printings; the UI must explain that editions do not need to match.
 - Selection changes clear stale comparison results while preserving the rest of the active flow.
 - Reciprocal wants and auto-trade proposals remain a separate backend-dependent slice; do not infer the other player's private wishlist from public binder data.
+
+## 2026-08-16 - Frontend interaction-test foundation
+
+- Node-native domain tests remain under test/*.test.js and run through test:rules.
+- Rendered React tests live under test/ui/**/*.test.jsx and run through Vitest in jsdom.
+- Testing Library user-event is the interaction driver; axe-core provides automated accessibility findings but does not replace manual accessibility review.
+- npm test is the combined quality gate for both rule and rendered interaction suites.
