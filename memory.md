@@ -244,3 +244,10 @@ It stores durable context, not a transcript or changelog.
 - Rendered React tests live under test/ui/**/*.test.jsx and run through Vitest in jsdom.
 - Testing Library user-event is the interaction driver; axe-core provides automated accessibility findings but does not replace manual accessibility review.
 - npm test is the combined quality gate for both rule and rendered interaction suites.
+
+## 2026-08-19 - Trade proposal authority boundary
+
+- **Context:** Prepared frontend proposal composition while backend trade lifecycle work remained under review.
+- **Insight:** The browser may calculate a clearly labeled estimate from Card Kingdom retail with Scryfall USD fallback, but proposal payloads must contain only participant, binder, card, and quantity identifiers. The backend must refresh and snapshot authoritative prices.
+- **Confidence:** high
+- **Confirmations:** 1

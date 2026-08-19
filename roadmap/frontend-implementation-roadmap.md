@@ -443,6 +443,8 @@ Release gate:
 - Covered loading, empty, error, disabled, and populated states for each step, including explicit copy that matching ignores card edition.
 - Added a focused payload contract helper and Node test coverage.
 - Next bounded slice: extend comparison into reciprocal wants and an auto-trade proposal once the backend reciprocal-matching contract is available.
+- Added pure proposal-composition rules for quantity-safe two-sided selections, client-side USD estimates, missing-price disclosure, and price-free backend payloads.
+- The rendered proposal builder remains blocked on public collection and trade creation endpoints; frontend estimates never replace backend price snapshots.
 
 ## Phase 6 progress: rendered interaction testing
 
