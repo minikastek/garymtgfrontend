@@ -251,3 +251,10 @@ It stores durable context, not a transcript or changelog.
 - **Insight:** The browser may calculate a clearly labeled estimate from Card Kingdom retail with Scryfall USD fallback, but proposal payloads must contain only participant, binder, card, and quantity identifiers. The backend must refresh and snapshot authoritative prices.
 - **Confidence:** high
 - **Confirmations:** 1
+
+## 2026-08-20 - Binder trade sharing is explicit and confirmed
+
+- **Context:** Added the owner control that makes a binder discoverable for trade.
+- **Insight:** Treat `tradeEnabled` as an explicit opt-in inside the existing metadata transaction. Initialize missing values as private, adopt only the backend-confirmed boolean, and restore the last confirmed value after a failed save.
+- **Confidence:** high
+- **Confirmations:** 1

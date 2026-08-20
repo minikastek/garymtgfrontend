@@ -445,6 +445,8 @@ Release gate:
 - Next bounded slice: extend comparison into reciprocal wants and an auto-trade proposal once the backend reciprocal-matching contract is available.
 - Added pure proposal-composition rules for quantity-safe two-sided selections, client-side USD estimates, missing-price disclosure, and price-free backend payloads.
 - The rendered proposal builder remains blocked on public collection and trade creation endpoints; frontend estimates never replace backend price snapshots.
+- Added an owner-facing binder trade-sharing control that defaults to private, submits an explicit boolean with metadata, and restores the last confirmed setting after failed saves.
+- This control depends on backend PR #12 (`tradeEnabled` persistence and discovery enforcement) landing before release.
 
 ## Phase 6 progress: rendered interaction testing
 

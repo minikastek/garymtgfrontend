@@ -24,6 +24,7 @@ export default function BinderDetail() {
   const [binder, setBinder] = useState(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [tradeEnabled, setTradeEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState('');
   const [error, setError] = useState('');
@@ -37,6 +38,7 @@ export default function BinderDetail() {
       setBinder(response.binder);
       setName(response.binder.name);
       setDescription(response.binder.description || '');
+      setTradeEnabled(Boolean(response.binder.tradeEnabled));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -47,7 +49,11 @@ export default function BinderDetail() {
   useEffect(() => { loadBinder(); }, [loadBinder]);
 
   const metadata = normalizeBinderMetadata(name, description);
-  const metadataDirty = Boolean(binder) && (metadata.name !== binder.name || metadata.description !== binder.description);
+  const metadataDirty = Boolean(binder) && (
+    metadata.name !== binder.name
+    || metadata.description !== binder.description
+    || tradeEnabled !== Boolean(binder.tradeEnabled)
+  );
 
   async function mutate(label, operation, successMessage) {
     if (mutationLockRef.current) return false;
@@ -59,7 +65,7 @@ export default function BinderDetail() {
       const { binder: confirmedBinder } = await operation();
       setBinder(confirmedBinder);
       setStatus(successMessage);
-      return true;
+      return confirmedBinder;
     } catch (err) {
       setError(`${err.message} No se aplicaron cambios.`);
       return false;
@@ -72,10 +78,17 @@ export default function BinderDetail() {
   async function handleMetadata(event) {
     event.preventDefault();
     if (!metadata.name) return setError('El nombre del binder es obligatorio.');
-    const saved = await mutate('metadata', () => updateBinder(id, metadata), 'Datos del binder guardados.');
+    const saved = await mutate(
+      'metadata',
+      () => updateBinder(id, { ...metadata, tradeEnabled }),
+      'Datos del binder guardados.',
+    );
     if (saved) {
-      setName(metadata.name);
-      setDescription(metadata.description);
+      setName(saved.name);
+      setDescription(saved.description || '');
+      setTradeEnabled(Boolean(saved.tradeEnabled));
+    } else {
+      setTradeEnabled(Boolean(binder.tradeEnabled));
     }
   }
 
@@ -119,6 +132,10 @@ export default function BinderDetail() {
         <div className="grid min-w-0 gap-3">
           <label className="flex min-w-0 flex-col gap-1.5 text-sm font-medium text-muted">Nombre<input className="min-h-11 min-w-0 rounded-lg border border-white/10 bg-bg px-3 text-xl font-bold text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/45" value={name} onChange={(event) => { setName(event.target.value); setStatus(''); }} required /></label>
           <label className="flex min-w-0 flex-col gap-1.5 text-sm font-medium text-muted">Descripción <span className="font-normal">(opcional, {description.length}/280)</span><textarea className="min-h-24 min-w-0 resize-y rounded-lg border border-white/10 bg-bg p-3 text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/45" value={description} maxLength={280} onChange={(event) => { setDescription(event.target.value); setStatus(''); }} /></label>
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-bg p-3 text-sm text-white focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/45">
+            <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-accent" checked={tradeEnabled} disabled={Boolean(pending)} onChange={(event) => { setTradeEnabled(event.target.checked); setStatus(''); }} />
+            <span><span className="block font-semibold">Disponible para intercambios</span><span className="mt-1 block font-normal text-muted">Otros jugadores podrán encontrar este binder y usar sus cartas para preparar propuestas.</span></span>
+          </label>
         </div>
         <Button type="submit" disabled={Boolean(pending) || !metadataDirty || !metadata.name}>{pending === 'metadata' ? 'Guardando…' : metadataDirty ? 'Guardar datos' : 'Datos guardados'}</Button>
       </form>
